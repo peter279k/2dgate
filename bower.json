@@ -1,0 +1,8 @@
+{
+    "name": "figlet-generator",
+    "version": "1.0.0",
+    "dependencies": {
+        "framework7": "*",
+        "xdomain": "*"
+    }
+}
