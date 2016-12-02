@@ -1,7 +1,6 @@
 {
     "require": {
         "league/route": "^2.0",
-        "zendframework/zend-diactoros": "^1.3",
-        "aura/router": "^3.0"
+        "zendframework/zend-diactoros": "^1.3"
     }
 }
