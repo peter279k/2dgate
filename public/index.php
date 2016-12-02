@@ -9,7 +9,7 @@ $container = new League\Container\Container;
 
 $container->share('response', Zend\Diactoros\Response::class);
 $container->share('request', function () {
-    $_SERVER['REQUEST_URI'] = str_replace('/2dgate/public', '', $_SERVER['REQUEST_URI']);
+    //$_SERVER['REQUEST_URI'] = str_replace('/2dgate/public', '', $_SERVER['REQUEST_URI']);
     return Zend\Diactoros\ServerRequestFactory::fromGlobals(
         $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES
     );
