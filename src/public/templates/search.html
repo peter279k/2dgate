@@ -1,0 +1,32 @@
+<!-- Top Navbar-->
+<div class="navbar">
+    <div class="navbar-inner">
+        <div class="left"><a href="#" class="back link"><i class="icon icon-back"></i><span>上一頁</span></a></div>
+        <div class="center sliding">尋找動畫</div>
+    </div>
+</div>
+<div class="pages">
+    <!-- Page, data-page contains page name-->
+    <div data-page="dynamic-pages" class="page">
+        <!-- Scrollable page content-->
+            <form data-search-list=".list-block-search" data-search-in=".item-title" class="searchbar searchbar-init">
+                <div class="searchbar-input">
+                    <input id="search-anime-input" type="search" placeholder="請輸入動畫名稱..."><a href="#" class="searchbar-clear"></a>
+                </div><a href="#" class="searchbar-cancel">取消</a>
+            </form>
+            
+            <!-- Search Bar overlay -->
+            <div class="searchbar-overlay"></div>
+            
+            <div class="page-content">
+                <!-- This block will be displayed if nothing found -->
+                <div class="content-block searchbar-not-found">
+                    <div class="content-block-inner">什麼也沒找到 QAQ</div>
+                </div>
+                <!-- This block will be displayed if anything found, and this list block is used a searbar target -->
+                <div class="list-block list-block-search searchbar-found">
+                    <ul id="search-result-anime"></ul>
+                </div>
+            </div>
+    </div>
+</div>

@@ -1,0 +1,9 @@
+{
+    "require": {
+        "slim/slim": "^3.6",
+        "twig/twig": "^1.28",
+        "guzzlehttp/guzzle": "^6.2",
+        "symfony/dom-crawler": "^3.2",
+        "symfony/css-selector": "^3.2"
+    }
+}

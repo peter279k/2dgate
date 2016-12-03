@@ -2,6 +2,10 @@
 
 require __DIR__.'/../vendor/autoload.php';
 
+spl_autoload_register(function ($classname) {
+    require (__DIR__."/../classes/" . $classname . ".php");
+});
+
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 use \Slim\App;
@@ -34,6 +38,22 @@ $twig = new Twig_Environment($loader, []);
 $app->get('/', function (Request $request, Response $response) {
     global $twig;
     $response->getBody()->write($twig->render('index.html', []));
+
+    return $response;
+});
+
+$app->get('/search', function (Request $request, Response $response) {
+    global $twig;
+    $response->getBody()->write($twig->render('search.html', []));
+
+    return $response;
+});
+
+$app->post('/search', function (Request $request, Response $response) {
+    $animeName = htmlentities($request->getAttribute('anime_name'));
+    $cacheFile = htmlentities($request->getAttribute('cache_file'));
+
+    $response->getBody()->write();
 
     return $response;
 });

@@ -1,6 +1,0 @@
-{
-    "require": {
-        "slim/slim": "^3.6",
-        "twig/twig": "^1.28"
-    }
-}

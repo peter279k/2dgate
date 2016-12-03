@@ -8,12 +8,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <!-- Your app title -->
     <title>二次元之門-手機板</title>
+    <link rel="shortcut icon" href="http://2d-gate.org/favicon.ico"/>
     <!-- Path to Framework7 iOS CSS theme styles-->
     <link rel="stylesheet" href="bower_components/framework7/dist/css/framework7.ios.min.css">
     <!-- Path to Framework7 iOS related color styles -->
     <link rel="stylesheet" href="bower_components/framework7/dist/css/framework7.ios.colors.min.css">
     <!-- Path to your custom app styles-->
     <link rel="stylesheet" href="css/my-app.css">
+    <style>
+      img {
+        width: 100%;
+        height: auto;
+      }
+    </style>
   </head>
   <body>
     <!-- Status bar overlay for full screen mode (PhoneGap) -->
@@ -23,7 +30,8 @@
     <!-- Left panel with reveal effect-->
     <div class="panel panel-left panel-reveal">
       <div class="content-block">
-        <p>Left panel content goes here11fffdd2</p>
+        <p><a id="search-anime" href="#">尋找動畫</a></p>
+        <p><a id="android-app" target="_blank" href="http://www.droidbin.com/p1b31rhj0qdsaq909l14bd12lf3" class="external">Android APP 下載</a></p>
       </div>
     </div>
     <!-- Views -->
@@ -34,14 +42,14 @@
         <div class="navbar">
           <div class="navbar-inner">
             <!-- We need cool sliding animation on title element, so we have additional "sliding" class -->
-            <div class="center sliding">Awesome App</div>
+            <div class="center sliding">二次元之門-手機板</div>
             <div class="right">
               <!-- 
                 Right link contains only icon - additional "icon-only" class
                 Additional "open-panel" class tells app to open panel when we click on this link
               -->
               <a href="#" class="link icon-only open-panel"><i class="icon icon-bars"></i></a>
-            </div>
+              </div>
           </div>
         </div>
         <!-- Pages container, because we use fixed-through navbar and toolbar, it has additional appropriate classes-->
@@ -50,9 +58,12 @@
           <div data-page="index" class="page">
             <!-- Scrollable page content -->
             <div class="page-content">
-              <p>Page content goes here</p>
-              <!-- Link to another page -->
-              <a href="about.html">About app</a>
+              <div class="list-block-label"><img src="http://2d-gate.org/template/2d-gate/images/logo.png"></div>
+              <div class="content-block-title">新番列表</div>
+               <div class="list-block">
+                 <div class="list-block-label">下方的新番表約每15分鐘更新一次，並不會即時反映出改動。所標示的時間，亦可能與實際時間相異，僅供參考。</div>
+                 <ul id="new-anime-lists" ></ul>
+               </div>
             </div>
           </div>
         </div>
@@ -60,15 +71,14 @@
         <div class="toolbar">
           <div class="toolbar-inner">
             <!-- Toolbar links -->
-            <a href="#" class="link">Link 1</a>
-            <a href="#" class="link">Link 2</a>
           </div>
         </div>
       </div>
     </div>
     <!-- Path to Framework7 Library JS-->
-    <script type="text/javascript" src="bower_components/framework7/dist/js/framework7.min.js"></script>
+    <script src="bower_components/framework7/dist/js/framework7.min.js"></script>
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <!-- Path to your app js-->
-    <script type="text/javascript" src="js/my-app.js"></script>
+    <script src="js/my-app.js"></script>
   </body>
 </html>       
