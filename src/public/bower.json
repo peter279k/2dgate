@@ -1,0 +1,8 @@
+{
+    "name": "2dgate-mobile",
+    "version": "1.0.0",
+    "dependencies": {
+        "framework7": "^1",
+        "xdomain": "^0.7"
+    }
+}

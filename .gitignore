@@ -1,4 +1,4 @@
 bowerphp.phar
 composer.phar
-vendor/*
-public/bower_components/*
+src/vendor
+src/public/bower_components
