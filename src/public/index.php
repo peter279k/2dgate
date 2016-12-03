@@ -29,9 +29,7 @@ $app = new App($container);
 
 $loader = new Twig_Loader_Filesystem(__DIR__.'/templates');
 
-$twig = new Twig_Environment($loader, [
-    'cache' => __DIR__.'/compilation_cache',
-]);
+$twig = new Twig_Environment($loader, []);
 
 $app->get('/', function (Request $request, Response $response) {
     global $twig;
@@ -39,7 +37,5 @@ $app->get('/', function (Request $request, Response $response) {
 
     return $response;
 });
-
-
 
 $app->run();

@@ -2,3 +2,4 @@ bowerphp.phar
 composer.phar
 src/vendor
 src/public/bower_components
+src/public/compilation_cache
