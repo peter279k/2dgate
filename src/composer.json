@@ -2,8 +2,8 @@
     "require": {
         "slim/slim": "^3.6",
         "twig/twig": "^1.28",
-        "guzzlehttp/guzzle": "^6.2",
-        "symfony/dom-crawler": "^3.2",
-        "symfony/css-selector": "^3.2"
+        "electrolinux/phpquery": "^0.9.6",
+        "mashape/unirest-php": "^3.0",
+        "slim/http-cache": "^0.3.0"
     }
 }

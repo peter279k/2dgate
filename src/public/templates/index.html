@@ -15,12 +15,6 @@
     <link rel="stylesheet" href="bower_components/framework7/dist/css/framework7.ios.colors.min.css">
     <!-- Path to your custom app styles-->
     <link rel="stylesheet" href="css/my-app.css">
-    <style>
-      img {
-        width: 100%;
-        height: auto;
-      }
-    </style>
   </head>
   <body>
     <!-- Status bar overlay for full screen mode (PhoneGap) -->
@@ -58,7 +52,9 @@
           <div data-page="index" class="page">
             <!-- Scrollable page content -->
             <div class="page-content">
-              <div class="list-block-label"><img src="http://2d-gate.org/template/2d-gate/images/logo.png"></div>
+              <div class="list-block-label">
+                <img class="responsive-img" src="http://2d-gate.org/template/2d-gate/images/logo.png">
+              </div>
               <div class="content-block-title">新番列表</div>
                <div class="list-block">
                  <div class="list-block-label">下方的新番表約每15分鐘更新一次，並不會即時反映出改動。所標示的時間，亦可能與實際時間相異，僅供參考。</div>
