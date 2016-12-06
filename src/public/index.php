@@ -57,6 +57,14 @@ $app->get('/search', function (Request $request, Response $response) {
     return $response;
 });
 
+$app->get('/search-news', function (Request $request, Response $response) {
+    global $twig;
+    $resWithLastMod = $this->cache->withLastModified($response, time() - 3600);
+    $response->getBody()->write($twig->render('search-news.html', []));
+
+    return $response;
+});
+
 $app->post('/video', function (Request $request, Response $response) {
     $parsedBody = $request->getParsedBody();
 

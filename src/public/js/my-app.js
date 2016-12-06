@@ -46,15 +46,16 @@ var myApp = new Framework7({
             error: function (err) {
                 console.log(err);
             }
+        }).then(function() {
         });
     }
+
 });
 
 // Export selectors engine
 var $$ = Dom7;
 
-var currAnimePage = 0;
-var currNewsPage = 0;
+$$('#disqus_thread').hide();
 
 // Add view
 var mainView = myApp.addView('.view-main', {
@@ -65,26 +66,43 @@ var mainView = myApp.addView('.view-main', {
 
 // Callbacks to run specific code for specific pages, for example for search page:
 
-$$(document).on('click', '#search-anime', function (page) {
+$$(document).on('click', '#search-anime', function (e) {
     // run createContentPage func after link was clicked
+    e.preventDefault =false;
     myApp.closePanel();
-    myApp.showPreloader('載入中...');
-    createContentPage();
+    myApp.showIndicator();
+    createContentPage('search', null);
+});
+
+$$(document).on('click', '#search-anime-news', function (e) {
+    // run createContentPage func after link was clicked
+    e.preventDefault = false;
+    myApp.closePanel();
+    myApp.showIndicator();
+    createContentPage('search-news', null);
 });
 
 $$(document).on('click', 'a[name="anime-link"]', function (e) {
     e.preventDefault = false;
-    var animeLink = $$('a[name="anime-link"]').attr('data-link');
-
-    requestPage(animeLink);
-});
-
-$$(document).on('input propertychange', '#search-anime-input', function (e) {
-    
+    var animeLink = $$(this).attr('data-link');
+    createContentPage('anime-intro', animeLink);
 });
 
 $$(document).on('click', '#android-app', function (e) {
     myApp.closePanel();
+});
+
+
+$$(document).on('click', 'a[name="anime-lists-link"]', function (e) {
+    e.preventDefault = false;
+    var animeLink = $$(this).attr('data-link');
+    console.log(animeLink);
+});
+
+$$(document).on('click', 'a[name="more-anime-infos"]', function (e) {
+    e.preventDefault = false;
+    var animeLink = $$(this).attr('data-link');
+    console.log(animeLink);
 });
 
 function renderOneAnime(animes) {
@@ -154,12 +172,121 @@ function renderAnimes(animes) {
 
 function initialList () {
     var link = 'http://2d-gate.org/forum.php?mod=forumdisplay&fid=78&sortid=2&sortid=2&filter=sortid&page=1#.WEPrzdV96Ul';
+    var currPage = null;
+    var renderStr = '';
 
     $.ajax({
         type: 'GET',
         url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
         dataType: "json",
         success: function (response) {
+            var totalPage = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div']['div']['div'][2]['div']['label']['span']['title'];
+            var pageAnimeLists = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div']['div']['div'][3]['div'][1]['form']['ul']['li'];
+
+            for(index in pageAnimeLists) {
+
+                var aTag = pageAnimeLists[index]['div']['a'];
+                var postLink = aTag['href'];
+                var animeName = aTag['title'];
+                var imgLink = aTag['img']['src'];
+
+                renderStr += '<li><a href="#" data-link="' + postLink + '" name="anime-lists-link" class="item-link item-content"><div class="item-media">';
+                renderStr += '<img data-src="' + imgLink + '" width="40" class="lazy"></div><div class="item-inner"><div class="item-title-row">';
+                renderStr += ' <div class="item-title">' + animeName + '</div>';
+                renderStr += '</div></div></a>';
+
+                renderStr += '</li>';
+            }
+
+            $('#search-result-anime').append(renderStr);
+
+            currPage = totalPage.replace(' ', '');
+            currPage = currPage.replace(' ', '');
+
+            currPage = currPage.replace('頁', '');
+            currPage = currPage.replace('共', '');
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    }).done (function () {
+        console.log('success');
+    }).fail (function () {
+        console.log('fail');
+    }).always (function () {
+        console.log('complete');
+    }).then (function  () {
+            //renderStr += otherPageLists(index, currPage);
+            otherPageLists(currPage, renderStr);
+    });
+}
+
+function initialNewsList() {
+    var link = 'http://2d-gate.org/forum-61-1.html';
+    var currPage = null;
+    var renderStr = '';
+    var appendStr = null;
+    myApp.showIndicator();
+
+    $.ajax({
+        type: 'GET',
+        url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
+        dataType: "json",
+        success: function (response) {
+            var totalPage = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div']['div']['div'][2]['div']['label']['span']['title'];
+            var pageAnimeLists = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div']['div']['div'][3]['div'][1]['form']['ul']['li'];
+
+            currPage = totalPage.replace(' ', '');
+            currPage = currPage.replace(' ', '');
+
+            currPage = currPage.replace('頁', '');
+            currPage = currPage.replace('共', '');
+
+            for(index in pageAnimeLists) {
+
+                var aTag = pageAnimeLists[index]['div']['a'];
+                var postLink = aTag['href'];
+                var postName = aTag['title'];
+                var imgLink = aTag['img']['src'];
+
+                renderStr += '<div class="content-block-title">動漫情報：取目前最新的前 20 筆</div>';
+                renderStr += '<div class="card demo-card-header-pic">';
+                renderStr += '<div style="background-image:url(' + imgLink + ')" valign="bottom" class="card-header color-white no-border"></div>';
+                renderStr += '<div class="card-content"><div class="card-content-inner">';
+                renderStr += '<p>' + postName + '</p></div></div>';
+                renderStr += '<div class="card-footer"><a name="have-page-number" data-total-page-number="2" href="#" class="link"></a><a name="more-anime-infos" data-link="' + postLink + '" href="#" class="link">更多...</a></div>';
+                renderStr += '</div>';
+            }
+
+            $('#search-anime-news-content').append(renderStr);
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    }).done (function () {
+        console.log('success');
+    }).fail (function () {
+        console.log('fail');
+    }).always (function () {
+        console.log('complete');
+    }).then (function  () {
+        myApp.hideIndicator();
+    });
+
+}
+
+function otherNewsPage(page) {
+    var link = '';
+}
+
+function animeNews () {
+    var link = 'http://2d-gate.org/forum-61-1.html#.WESSjdV96Uk';
+    
+    $.ajax({
+        type: 'GET',
+        url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
+        dataType: "json",
+        success: function (success) {
             var totalPage = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div']['div']['div'][2]['div']['label']['span']['title'];
             var pageAnimeLists = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div']['div']['div'][3]['div'][1]['form']['ul']['li'];
 
@@ -171,24 +298,6 @@ function initialList () {
 
             console.log(parseInt(currPage));
             console.log(JSON.stringify(pageAnimeLists));
-            
-            myApp.hidePreloader();
-        },
-        error: function (error) {
-            console.log(error);
-        }
-    });
-}
-
-function animeNews () {
-    var link = 'http://2d-gate.org/forum-61-1.html#.WESSjdV96Uk';
-    
-    $.ajax({
-        type: 'GET',
-        url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
-        dataType: "json",
-        success: function (success) {
-
         },
         error: function (error) {
             console.log(error);
@@ -197,14 +306,67 @@ function animeNews () {
 }
 
 function scrollNews(page) {
-    var link = 'http://2d-gate.org/forum-61-' + page + '.html#.WESSjdV96Uk';
 }
 
-function otherPageLists (page) {
-    var link = 'http://2d-gate.org/forum.php?mod=forumdisplay&fid=78&sortid=2&sortid=2&filter=sortid&page=' + page + '#.WEPrzdV96Ul';
+function otherPageLists (totalPage, initialStr) {
+    var pageArr = [];
+
+    for (var index=2;index<=totalPage;index++) {
+        pageArr[index-2] = index;
+    }
+
+    async_forin (pageArr, function (_, currPage, value) {
+        var link = 'http://2d-gate.org/forum.php?mod=forumdisplay&fid=78&sortid=2&sortid=2&filter=sortid&page=' + pageArr[currPage] + '#.WEWrpNV96Uk';
+        var renderStr = '';
+
+        $.ajax({
+            type: 'GET',
+            url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
+            dataType: "json",
+            success: function (response) {
+                var pageAnimeLists = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div']['div']['div'][3]['div'][1]['form']['ul']['li'];
+
+                for(index in pageAnimeLists) {
+                    renderStr += '<li><a name="anime-lists-link" href="#" class="item-link item-content"><div class="item-media">';
+
+                    var aTag = pageAnimeLists[index]['div']['a'];
+                    var postLink = aTag['href'];
+                    var animeName = aTag['title'];
+                    //console.log(animeName);
+                    var imgLink = aTag['img']['src'];
+
+                    renderStr += '<img data-src="' + imgLink + '" width="40" class="lazy"></div><div class="item-inner"><div class="item-title-row">';
+                    renderStr += ' <div class="item-title">' + animeName + '</div>';
+                    renderStr += '</div></div></a>';
+
+                    renderStr += '</li>';
+                }
+
+                $('#search-result-anime').append(renderStr);
+
+                if (pageArr[pageArr.length-1] === pageArr[currPage]) {
+                    myApp.initImagesLazyLoad('img.lazy');
+                    myApp.hideIndicator();
+                } else {
+                    _._next();
+                }
+            },
+            error: function (error) {
+                console.log(error);
+            }
+        }).fail (function () {
+            console.log('fail-' + currPage);
+            _._next();
+        });
+
+    });
 }
 
-function requestPage (link) {
+function requestAnimePage (link) {
+
+    myApp.showIndicator();
+    var renderOneAnime = '<div class="content-block"><div class="content-block-inner">';
+
     $.ajax({
         type: "GET",
         async: true,
@@ -221,16 +383,39 @@ function requestPage (link) {
             var imgLink = detailMsg[0]['center']['a']['href'];
             var getAnimeName = detailMsg[0]['div']['h1'];
             var getDescription = detailMsg[0]['div']['span']['content'];
-            var chapters = detailMsg[1]['table']['tbody']['tr']['td']['div']['div']['ul']['li'];
+            var chapters = detailMsg[1]['table']['tbody']['tr']['td']['div']['ul']['li'];
+            var chaptersVideo = detailMsg[1]['table']['tbody']['tr']['td']['div']['div'];
+
+            renderOneAnime += '<p><img data-src="' + imgLink + '" width="100%" class="lazy lazy-fadeIn"></p><p>' + getDescription + '</p>';
+
+            var btnCount = 0;
 
             for(index in chapters) {
-                var content = chapters[index]['a']['content'];
-                console.log(content);
+                renderOneAnime += '<p>';
+
+                if (isNaN(chapters[index]['a']['content'])) {
+                    renderOneAnime += '<p>';
+                    renderOneAnime += '<a data-link="no-link" href="#" class="button">' + chapters[index]['a']['content'] + '</a>';
+                    renderOneAnime += '</p>';
+                    continue;
+                } else {
+                    if (btnCount === 2) {
+                        renderOneAnime += '<p class="buttons-row">';
+                    renderOneAnime += '<a data-link="' + chaptersVideo[index]['span']['href'] + '" href="#" class="button">' + chapters[index]['a']['content'] + '</a>';
+                    renderOneAnime += '</p>';
+                }
+
+                renderOneAnime += '</p>';
             }
 
-            console.log(imgLink);
-            console.log(getAnimeName);
-            console.log(getDescription);
+            renderOneAnime += '</p>';
+
+            renderOneAnime += '</div></div>';
+
+            $('#anime-intro-content').append(renderOneAnime);
+
+             myApp.initImagesLazyLoad('img.lazy');
+             myApp.hideIndicator();
 
         },
         error: function (error) {
@@ -239,26 +424,96 @@ function requestPage (link) {
     });
 }
 
-function createContentPage() {
-    $.ajax({
-        type: 'GET',
-        async: true,
-        url: '/search',
-        success: function (response) {
-            mainView.router.loadContent(response);
-        },
-        error: function (error) {
-            console.log(error);
-        }
-    }).done(function () {
-        console.log('success');
-    }).fail(function () {
-        console.log('fail');
-    }).always(function () {
-        console.log('complete');
-    }).then(function () {
+function createContentPage(link, animeLink) {
+    if (link === 'search') {
+        mainView.router.loadPage('templates/search.html');
         initialList();
-    });
+    } else if (link === 'search-news') {
+        mainView.router.loadPage('templates/search-news.html');
+        initialNewsList();
+    } else if (link === 'anime-intro') {
+        mainView.router.loadPage('templates/anime-intro.html');
+        requestAnimePage(animeLink);
+    }
 
 	return;
 }
+
+function async_forin (list, main) {
+    var deferred = $.Deferred();
+    
+    if( Object.prototype.toString.call( list ) !== '[object Array]' ) {
+        //如果 list 是 object 的話，就把每個 key 抓出來再 call 一次 async_forin
+
+        var keys = [];
+        for(k in list) {
+            keys.push(k);
+        }
+        
+        async_forin(keys, function() {
+            main.call(this, this, keys[this.i], list[keys[this.i]]);
+        }).then(function() {
+            deferred.resolve(list);
+        });
+    } else {
+        //如果 list 是 array 的話，就直接走訪每個元素
+
+        var deferred = $.Deferred();
+        var n = list.length;
+        async_for({i: 0}, function () {
+            return this.i < n;
+        }, function () {
+            this.i++;
+        }, function () {
+            main.call(this, this, this.i, list[this.i]);
+        }).then(function () {
+            deferred.resolve(list);
+        });
+    }
+    
+    return deferred.promise();
+}
+
+function async_for (initObj, cond, step, main) {
+    var deferred = $.Deferred();
+
+    initObj._next = function () {
+        initObj._defer.resolve();
+    };
+
+    initObj._break = function () {
+        initObj._defer.reject();
+        deferred.resolve(initObj);
+    };
+
+    var wrapped_main = function () {
+        initObj._defer = $.Deferred();
+        main.call(this, this);
+        return this._defer.promise();
+    };
+
+    var async_start = function () {
+        if (cond.call(initObj, initObj)) {
+            wrapped_main.call(initObj).then(function () {
+                step.call(initObj, initObj);
+            }).then(async_start);
+        } else {
+            deferred.resolve(initObj);
+        }
+    };
+
+    async_start();
+
+    return deferred.promise();
+}
+
+function resetDisqus(tId) {
+    //"tid-13535"
+    DISQUS.reset({
+        reload: true,
+        config: function () {
+            this.page.identifier = tId;
+        }
+    });
+}
+
