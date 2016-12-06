@@ -48,7 +48,11 @@ var myApp = new Framework7({
             }
         }).then(function() {
         });
-    }
+    },
+    
+    modalButtonOk: '確定',
+
+    modalButtonCancel: '取消'
 
 });
 
@@ -71,7 +75,7 @@ $$(document).on('click', '#search-anime', function (e) {
     e.preventDefault =false;
     myApp.closePanel();
     myApp.showIndicator();
-    createContentPage('search', null);
+    createContentPage('search', null, null);
 });
 
 $$(document).on('click', '#search-anime-news', function (e) {
@@ -79,13 +83,13 @@ $$(document).on('click', '#search-anime-news', function (e) {
     e.preventDefault = false;
     myApp.closePanel();
     myApp.showIndicator();
-    createContentPage('search-news', null);
+    createContentPage('search-news', null, null);
 });
 
 $$(document).on('click', 'a[name="anime-link"]', function (e) {
     e.preventDefault = false;
     var animeLink = $$(this).attr('data-link');
-    createContentPage('anime-intro', animeLink);
+    createContentPage('anime-intro', animeLink, null);
 });
 
 $$(document).on('click', '#android-app', function (e) {
@@ -96,6 +100,7 @@ $$(document).on('click', '#android-app', function (e) {
 $$(document).on('click', 'a[name="anime-lists-link"]', function (e) {
     e.preventDefault = false;
     var animeLink = $$(this).attr('data-link');
+    createContentPage('anime-intro', animeLink, true);
     console.log(animeLink);
 });
 
@@ -192,7 +197,7 @@ function initialList () {
 
                 renderStr += '<li><a href="#" data-link="' + postLink + '" name="anime-lists-link" class="item-link item-content"><div class="item-media">';
                 renderStr += '<img data-src="' + imgLink + '" width="40" class="lazy"></div><div class="item-inner"><div class="item-title-row">';
-                renderStr += ' <div class="item-title">' + animeName + '</div>';
+                renderStr += ' <div name="item-anime-title" class="item-title">' + animeName + '</div>';
                 renderStr += '</div></div></a>';
 
                 renderStr += '</li>';
@@ -362,7 +367,7 @@ function otherPageLists (totalPage, initialStr) {
     });
 }
 
-function requestAnimePage (link) {
+function requestAnimePage (link, isAddTitle) {
 
     myApp.showIndicator();
     var renderOneAnime = '<div class="content-block"><div class="content-block-inner">';
@@ -373,6 +378,17 @@ function requestAnimePage (link) {
         url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
         dataType: "json",
         success: function (response) {
+
+            if (response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3] === undefined) {
+                myApp.hideIndicator();
+                var alertMsg = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div']['div'][1]['div']['div'][0]['p'];
+                //console.log(response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div']['div'][1]['div']['div'][0]['p']);
+                myApp.alert(alertMsg, '提示訊息', function () {
+                    mainView.router.back();
+                });
+                return;
+            }
+
             var infoRoot = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div'][1];
 
             //get DISQUS embeded JS and contents (embeded the comments)
@@ -383,29 +399,88 @@ function requestAnimePage (link) {
             var imgLink = detailMsg[0]['center']['a']['href'];
             var getAnimeName = detailMsg[0]['div']['h1'];
             var getDescription = detailMsg[0]['div']['span']['content'];
-            var chapters = detailMsg[1]['table']['tbody']['tr']['td']['div']['ul']['li'];
-            var chaptersVideo = detailMsg[1]['table']['tbody']['tr']['td']['div']['div'];
+            var chaptersLen = detailMsg[1]['table']['tbody']['tr']['td']['div'];
+
+            if (chaptersLen.length === undefined) {
+                var chapters = detailMsg[1]['table']['tbody']['tr']['td']['div']['ul']['li'];
+                var chaptersVideo = detailMsg[1]['table']['tbody']['tr']['td']['div']['div'];
+            } else {
+                var chapterKey = [];
+                for (key in chaptersLen[0]) {
+                    chapterKey[key] = key;
+                }
+               
+                if ('div' in chapterKey && detailMsg[1]['table']['tbody']['tr']['td']['div'][0]['div']['ul'] !== undefined) {
+                    var chapters = detailMsg[1]['table']['tbody']['tr']['td']['div'][0]['div']['ul']['li'];
+                    var chaptersVideo = detailMsg[1]['table']['tbody']['tr']['td']['div'][0]['div']['div'];
+                } else {
+                    if (detailMsg[1]['table']['tbody']['tr']['td']['div'][0]['ul'] !== undefined) {
+                        var chapters = detailMsg[1]['table']['tbody']['tr']['td']['div'][0]['ul']['li'];
+                        var chaptersVideo = detailMsg[1]['table']['tbody']['tr']['td']['div'][0]['div'];
+                    }
+                }
+
+                chapterKey = [];
+                for (key in chaptersLen[1]) {
+                    chapterKey[key] = key;
+                }
+                
+                if ('div' in chapterKey && detailMsg[1]['table']['tbody']['tr']['td']['div'][1]['div']['ul'] !== undefined) {
+                    var chapters = detailMsg[1]['table']['tbody']['tr']['td']['div'][1]['div']['ul']['li'];
+                    var chaptersVideo = detailMsg[1]['table']['tbody']['tr']['td']['div'][1]['div']['div'];
+                } else {
+                    if (detailMsg[1]['table']['tbody']['tr']['td']['div'][1]['ul'] !== undefined) {
+                        var chapters = detailMsg[1]['table']['tbody']['tr']['td']['div'][1]['ul']['li'];
+                        var chaptersVideo = detailMsg[1]['table']['tbody']['tr']['td']['div'][1]['div'];
+                    }
+                }
+            }
 
             renderOneAnime += '<p><img data-src="' + imgLink + '" width="100%" class="lazy lazy-fadeIn"></p><p>' + getDescription + '</p>';
 
-            var btnCount = 0;
+            if (isAddTitle === true) {
+                renderOneAnime += '<p>' + $$('a[name="item-anime-title"]').text() + '</p>';
+            }
 
-            for(index in chapters) {
-                renderOneAnime += '<p>';
+            for(var index=0;index<chapters.length;index+=3) {
 
-                if (isNaN(chapters[index]['a']['content'])) {
-                    renderOneAnime += '<p>';
-                    renderOneAnime += '<a data-link="no-link" href="#" class="button">' + chapters[index]['a']['content'] + '</a>';
-                    renderOneAnime += '</p>';
+                for(var count=0;count<=2;count++) {
+                    var keyArr = [];
+                    var counter = 0;
+                    for (key in chaptersVideo[index+count]) {
+                        keyArr[key] = key;
+                        counter += 1;
+                    }
+                }
+
+                if (counter === 0) {
                     continue;
-                } else {
-                    if (btnCount === 2) {
-                        renderOneAnime += '<p class="buttons-row">';
-                    renderOneAnime += '<a data-link="' + chaptersVideo[index]['span']['href'] + '" href="#" class="button">' + chapters[index]['a']['content'] + '</a>';
-                    renderOneAnime += '</p>';
+                }
+                
+                renderOneAnime += '<p class="buttons-row">';
+
+                for(var count=0;count<=2;count++) {
+
+                    var keyArr = [];
+                    for (key in chaptersVideo[index+count]) {
+                        keyArr[key] = key;
+                    }
+
+                    var animeNum = chapters[index+count]['a']['content'].replace('第', '');
+                         
+                    animeNum = animeNum.replace('集', '');
+
+                    if (!isNaN(animeNum)) {
+                        if ('span' in keyArr === false) {
+                            renderOneAnime += '<a data-link="no-link" href="#" class="button">' + animeNum + '</a>';
+                        } else {
+                            renderOneAnime += '<a data-link="' + chaptersVideo[index+count]['span']['href'] + '" href="#" class="button">' + animeNum + '</a>';
+                        }
+                    }
                 }
 
                 renderOneAnime += '</p>';
+
             }
 
             renderOneAnime += '</p>';
@@ -424,7 +499,7 @@ function requestAnimePage (link) {
     });
 }
 
-function createContentPage(link, animeLink) {
+function createContentPage(link, animeLink, isAddTitle) {
     if (link === 'search') {
         mainView.router.loadPage('templates/search.html');
         initialList();
@@ -433,7 +508,7 @@ function createContentPage(link, animeLink) {
         initialNewsList();
     } else if (link === 'anime-intro') {
         mainView.router.loadPage('templates/anime-intro.html');
-        requestAnimePage(animeLink);
+        requestAnimePage(animeLink, isAddTitle);
     }
 
 	return;
