@@ -378,7 +378,6 @@ function requestAnimePage (link, isAddTitle) {
         url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
         dataType: "json",
         success: function (response) {
-
             if (response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3] === undefined) {
                 myApp.hideIndicator();
                 var alertMsg = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div']['div'][1]['div']['div'][0]['p'];
@@ -390,10 +389,12 @@ function requestAnimePage (link, isAddTitle) {
             }
 
             var infoRoot = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div'][1];
+            var getScriptTid = infoRoot['div'][0]['table']['tbody']['tr'][1]['td']['div'][1]['fieldset']['script'];
+            getScriptTid = getScriptTid.replace(/\\/g, '');
+            var tidArr = getScriptTid.split('=');
 
-            //get DISQUS embeded JS and contents (embeded the comments)
 
-            //get the information of animes
+            //get the anime informations
 
             var detailMsg = infoRoot['div'][0]['table']['tbody']['tr'][0]['td'][1]['div'][1]['div']['div']['div'];
             var imgLink = detailMsg[0]['center']['a']['href'];
@@ -487,10 +488,11 @@ function requestAnimePage (link, isAddTitle) {
 
             renderOneAnime += '</div></div>';
 
-            $('#anime-intro-content').append(renderOneAnime);
+            $('#anime-intro-content').append(renderOneAnime + '<div id="disqus_thread"></div><script>' + getScriptTid + '</script>');
+            resetDisqus(tidArr[1].replace(/"/g, '').replace(';', ''));
 
-             myApp.initImagesLazyLoad('img.lazy');
-             myApp.hideIndicator();
+            myApp.initImagesLazyLoad('img.lazy');
+            myApp.hideIndicator();
 
         },
         error: function (error) {
@@ -507,6 +509,7 @@ function createContentPage(link, animeLink, isAddTitle) {
         mainView.router.loadPage('templates/search-news.html');
         initialNewsList();
     } else if (link === 'anime-intro') {
+        $$('#disqus_thread').remove();
         mainView.router.loadPage('templates/anime-intro.html');
         requestAnimePage(animeLink, isAddTitle);
     }
