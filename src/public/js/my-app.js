@@ -48,7 +48,7 @@ var myApp = new Framework7({
                 $('#new-anime-lists').html(renderStr);
             },
             error: function (err) {
-                myApp.alert('資料擷取時發生錯誤!', '提示訊息');
+                alert('資料擷取時發生錯誤!', '提示訊息');
                 console.log(err);
             }
         }).then(function() {
@@ -144,7 +144,27 @@ $$(document).on('click', 'a[name="anime-lists-link"]', function (e) {
 $$(document).on('click', 'a[name="more-anime-infos"]', function (e) {
     e.preventDefault = false;
     var animeLink = $$(this).attr('data-link');
-    console.log(animeLink);
+    $.ajax({
+        method: 'GET',
+        url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + animeLink + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
+        dataType: 'json',
+        success: function (response) {
+            if (response['query']['results'] === null) {
+                 myApp.alert('資料暫時無法取得！');
+                 return false;
+            }
+
+            var results = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div'][1]['div'][0];
+            var contents = results['table']['tbody']['tr'][0]['td'][1]['div'][1]['div']['div'][0]['table']['tbody']['tr']['td']['div'];
+            
+            console.log(JSON.stringify(contents));
+        },
+        error: function (err) {
+            console.log(err);
+            // news-intro-content
+            myApp.alert('資料擷取發生錯誤！', '提示訊息');
+        }
+    });
 });
 
 $$(document).on('click', 'a[name="video-link"]', function (e) {
