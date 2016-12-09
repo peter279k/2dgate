@@ -179,6 +179,11 @@ $$(document).on('click', 'a[name="video-link"]', function (e) {
     }
 });
 
+$$(document).on('click', '#sub-anime-news', function (e) {
+    e.preventDefault = false;
+    myApp.alert('功能開發中...', '提示訊息');
+});
+
 function renderOneAnime(animes) {
     var animeNameLink = animes['a']['href'];
     var renderStr = '';
