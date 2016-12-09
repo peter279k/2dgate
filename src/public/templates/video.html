@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://www.facebook.com/2008/fbml" xmlns:og="http://ogp.me/ns#">
+<head>
+<title>2D-Gate Video Embedding System</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+<meta property="og:description" content="2D-Gate Video Embedding System"/>
+<meta property="og:site_name" content="2D-Gate Video Embedding System"/>
+<meta property="og:type" content="video.episode"/>
+<meta property="og:url" content={{ videoLink | raw }}/>
+<meta property="og:image" content={{ imageLink | raw }}/>
+<base href="//embed.2d-gate.org/"/>
+<link rel="canonical" href={{ videoLink | raw }}/>
+<link rel="shortcut icon" href="html/images/favicon.ico"/>
+<style type="text/css">body{margin:0;}html,body{height:100%;}.jw-skin-tube .jw-controlbar-center-group{top:-1em;}.jw-skin-tube .jw-controlbar-center-group:hover .jw-rail{background-color:rgba(255,255,255,.35);}.jw-skin-tube .jw-controlbar-center-group:hover .jw-slider-container .jw-tooltip-time{font-size:.5em;}.jw-skin-tube .jw-controlbar-center-group:hover .jw-slider-time{font-size:2em;}.jw-skin-tube .jw-slider-time{transition:all .1s cubic-bezier(0.4,0.0,1,1);}.jw-skin-tube .jw-tooltip-time{pointer-events:none;}.jwplayer .jw-text.jw-option:hover{background-color:#00f;}.jwplayer.jw-flag-fullscreen{font-size:20px;}.jw-title-primary,.jw-title-secondary{box-sizing:border-box;}.jwplayer .jw-rightclick{display:none!important;}</style>
+</head>
+<body>
+<div id="videoContainer"></div>
+<script type="text/javascript">{{ iniLinkCode | raw }}</script>
+<script type="text/javascript" src="html/isMobile/isMobile.min.js"></script>
+<script type="text/javascript" src="html/jwplayer-7.8.2/jwplayer.js"></script>
+<script type="text/javascript" src="html/jwplayer-7.8.2/jwpsrv.js"></script>
+<script type="text/javascript" src="html/jwplayer-7.8.2/related.js"></script>
+<script type="text/javascript" src="html/jwplayer-7.8.2/plugins/inject.js"></script>
+<script type="text/javascript" src="html/CommentCoreLibrary/CommentCoreLibrary.min.js"></script>
+<link rel="stylesheet" type="text/css" href="html/CommentCoreLibrary/style.min.css"/>
+<script type="text/javascript" src="html/msgpack-js-browser/msgpack.min.js"></script>
+<script type="text/javascript">{{ evalCode | raw }}</script>
+<script type="text/javascript">(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');ga('create','UA-87335294-2','auto');ga('send','pageview');</script>
+</body>
+</html>

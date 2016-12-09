@@ -1,8 +1,12 @@
+$.ajaxSetup({
+    timeout: 10000
+});
+
 // Initialize your app
 var myApp = new Framework7({
     onPageInit: function (page) {
         $.ajax({
-            type: 'GET',
+            method: 'GET',
             url: "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20html%20where%20url%3D'http%3A%2F%2F2d-gate.org%2Fforum-78-1.html'&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys",
             dataType: 'json',
             success: function (res) {
@@ -44,6 +48,7 @@ var myApp = new Framework7({
                 $('#new-anime-lists').html(renderStr);
             },
             error: function (err) {
+                myApp.alert('資料擷取時發生錯誤!', '提示訊息');
                 console.log(err);
             }
         }).then(function() {
@@ -52,19 +57,52 @@ var myApp = new Framework7({
     
     modalButtonOk: '確定',
 
-    modalButtonCancel: '取消'
+    modalButtonCancel: '取消',
+
+    fastClicks: false
 
 });
 
 // Export selectors engine
 var $$ = Dom7;
 
+//check the localstorage whether is enabled.
+var isSupport = isEnableCache();
+
+// Loading flag (for infinite scroll event)
+var loading = false;
+var currNewsPage = 1;
+var totalNewsPage = 0;
+
+$$(document).on('infinite', '#search-anime-news-content', function () {
+    console.log('infinite!');
+
+    if (loading) {
+        return;
+    }
+
+    if (currNewsPage === totalNewsPage) {
+        myApp.detachInfiniteScroll($$('#search-anime-news-content'));
+        
+        return;
+    } else {
+        loading = true;
+        myApp.showIndicator();
+        initialNewsList('scroll-event');
+    }
+});
+
+$$(document).on('click', '#search-anime-news-back', function (e) {
+    e.preventDefault = false;
+    currNewsPage = 1;
+    mainView.router.back();
+});
+
 $$('#disqus_thread').hide();
 
 // Add view
 var mainView = myApp.addView('.view-main', {
     // Because we use fixed-through navbar we can enable dynamic navbar
-
     dynamicNavbar: true
 });
 
@@ -101,13 +139,44 @@ $$(document).on('click', 'a[name="anime-lists-link"]', function (e) {
     e.preventDefault = false;
     var animeLink = $$(this).attr('data-link');
     createContentPage('anime-intro', animeLink, true);
-    console.log(animeLink);
 });
 
 $$(document).on('click', 'a[name="more-anime-infos"]', function (e) {
     e.preventDefault = false;
     var animeLink = $$(this).attr('data-link');
     console.log(animeLink);
+});
+
+$$(document).on('click', 'a[name="video-link"]', function (e) {
+    e.preventDefault = false;
+    var videoLink = $$(this).attr('data-link');
+
+    if (videoLink === 'no-link') {
+        myApp.alert('目前此集數的動畫從缺！', '提示訊息');
+    } else {
+        $.ajax({
+            method: 'POST',
+            url: '/video',
+            data: {
+                videoLink: videoLink
+            },
+            dataType: 'text',
+            success: function (response) {
+                if (response !== 'the video cannot get the source') {
+                   var pymParent = new pym.Parent('video-links', '/video/' + response, {});
+                   $$('#video-links iframe').attr({
+                       allowfullscreen: ''
+                   });
+                } else {
+                    myApp.alert(response, '提示訊息');
+                }
+            },
+            error: function (error) {
+                myApp.alert('擷取動畫連結發生錯誤！', '提示訊息');
+                console.log(error);
+            }
+        });
+    }
 });
 
 function renderOneAnime(animes) {
@@ -181,7 +250,7 @@ function initialList () {
     var renderStr = '';
 
     $.ajax({
-        type: 'GET',
+        method: 'GET',
         url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
         dataType: "json",
         success: function (response) {
@@ -217,24 +286,34 @@ function initialList () {
     }).done (function () {
         console.log('success');
     }).fail (function () {
+        myApp.alert('資料擷取時發生錯誤!', '提示訊息');
+        myApp.hideIndicator();
         console.log('fail');
     }).always (function () {
         console.log('complete');
     }).then (function  () {
-            //renderStr += otherPageLists(index, currPage);
+            if (isSupport) {
+                setCache('search', renderStr);
+            }
+
             otherPageLists(currPage, renderStr);
     });
 }
 
-function initialNewsList() {
-    var link = 'http://2d-gate.org/forum-61-1.html';
+function initialNewsList(eventName) {
+    var link = 'http://2d-gate.org/forum-61-' + currNewsPage + '.html';
     var currPage = null;
     var renderStr = '';
     var appendStr = null;
-    myApp.showIndicator();
+
+    if (eventName === null) {
+        myApp.showIndicator();
+    }
+
+    myApp.attachInfiniteScroll($$('#search-anime-news-content'));
 
     $.ajax({
-        type: 'GET',
+        method: 'GET',
         url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
         dataType: "json",
         success: function (response) {
@@ -247,6 +326,12 @@ function initialNewsList() {
             currPage = currPage.replace('頁', '');
             currPage = currPage.replace('共', '');
 
+            currPage = totalNewsPage;
+
+            if (eventName === null) {
+                renderStr += '<div class="content-block-title">動漫情報：取目前最新的前 20 筆</div>';
+            }
+
             for(index in pageAnimeLists) {
 
                 var aTag = pageAnimeLists[index]['div']['a'];
@@ -254,7 +339,6 @@ function initialNewsList() {
                 var postName = aTag['title'];
                 var imgLink = aTag['img']['src'];
 
-                renderStr += '<div class="content-block-title">動漫情報：取目前最新的前 20 筆</div>';
                 renderStr += '<div class="card demo-card-header-pic">';
                 renderStr += '<div style="background-image:url(' + imgLink + ')" valign="bottom" class="card-header color-white no-border"></div>';
                 renderStr += '<div class="card-content"><div class="card-content-inner">';
@@ -271,43 +355,25 @@ function initialNewsList() {
     }).done (function () {
         console.log('success');
     }).fail (function () {
+        myApp.hideIndicator();
         console.log('fail');
     }).always (function () {
         console.log('complete');
     }).then (function  () {
+        currNewsPage += 1;
+
         myApp.hideIndicator();
-    });
 
-}
-
-function otherNewsPage(page) {
-    var link = '';
-}
-
-function animeNews () {
-    var link = 'http://2d-gate.org/forum-61-1.html#.WESSjdV96Uk';
-    
-    $.ajax({
-        type: 'GET',
-        url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
-        dataType: "json",
-        success: function (success) {
-            var totalPage = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div']['div']['div'][2]['div']['label']['span']['title'];
-            var pageAnimeLists = response['query']['results']['body']['div'][4]['div']['div']['div']['div']['div'][3]['div']['div']['div'][3]['div'][1]['form']['ul']['li'];
-
-            var currPage = totalPage.replace(' ', '');
-            currPage = currPage.replace(' ', '');
-
-            currPage = currPage.replace('頁', '');
-            currPage = currPage.replace('共', '');
-
-            console.log(parseInt(currPage));
-            console.log(JSON.stringify(pageAnimeLists));
-        },
-        error: function (error) {
-            console.log(error);
+        if (eventName !== null) {
+             loading = false;
         }
+
     });
+
+}
+
+function otherNewsPage (page) {
+    var link = '';
 }
 
 function scrollNews(page) {
@@ -325,7 +391,7 @@ function otherPageLists (totalPage, initialStr) {
         var renderStr = '';
 
         $.ajax({
-            type: 'GET',
+            method: 'GET',
             url: 'https://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent("select * from html where url= '" + link + "'") + "&format=json&env=" + encodeURIComponent('store://datatables.org/alltableswithkeys'),
             dataType: "json",
             success: function (response) {
@@ -360,6 +426,8 @@ function otherPageLists (totalPage, initialStr) {
                 console.log(error);
             }
         }).fail (function () {
+            myApp.hideIndicator();
+            myApp.alert('資料擷取時發生錯誤!', '提示訊息');
             console.log('fail-' + currPage);
             _._next();
         });
@@ -473,9 +541,9 @@ function requestAnimePage (link, isAddTitle) {
 
                     if (!isNaN(animeNum)) {
                         if ('span' in keyArr === false) {
-                            renderOneAnime += '<a data-link="no-link" href="#" class="button">' + animeNum + '</a>';
+                            renderOneAnime += '<a name="video-link" data-link="no-link" href="#" class="button">' + animeNum + '</a>';
                         } else {
-                            renderOneAnime += '<a data-link="' + chaptersVideo[index+count]['span']['href'] + '" href="#" class="button">' + animeNum + '</a>';
+                            renderOneAnime += '<a name="video-link" data-link="' + chaptersVideo[index+count]['span']['href'] + '" href="#" class="button">' + animeNum + '</a>';
                         }
                     }
                 }
@@ -488,7 +556,7 @@ function requestAnimePage (link, isAddTitle) {
 
             renderOneAnime += '</div></div>';
 
-            $('#anime-intro-content').append(renderOneAnime + '<div id="disqus_thread"></div><script>' + getScriptTid + '</script>');
+            $('#anime-intro-content').append(renderOneAnime + '<div id="video-links"></div>' + '<div id="disqus_thread"></div><script>' + getScriptTid + '</script>');
             resetDisqus(tidArr[1].replace(/"/g, '').replace(';', ''));
 
             myApp.initImagesLazyLoad('img.lazy');
@@ -496,18 +564,27 @@ function requestAnimePage (link, isAddTitle) {
 
         },
         error: function (error) {
+            myApp.alert('資料擷取時發生錯誤!', '提示訊息');
+            myApp.hideIndicator();
             console.log(error);
         }
     });
 }
 
-function createContentPage(link, animeLink, isAddTitle) {
+function createContentPage (link, animeLink, isAddTitle) {
     if (link === 'search') {
         mainView.router.loadPage('templates/search.html');
-        initialList();
+        if (isExpiredCache('search')) {
+            console.log('the anime lists cache is clear...');
+        } else if (isCache('search')) {
+            var renderString = getCache('search');
+            $('#search-result-anime').append(renderString['render-string']);
+        } else {
+            initialList();
+        }
     } else if (link === 'search-news') {
         mainView.router.loadPage('templates/search-news.html');
-        initialNewsList();
+        initialNewsList(null);
     } else if (link === 'anime-intro') {
         $$('#disqus_thread').remove();
         mainView.router.loadPage('templates/anime-intro.html');
@@ -594,4 +671,3 @@ function resetDisqus(tId) {
         }
     });
 }
-

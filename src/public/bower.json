@@ -3,6 +3,8 @@
     "version": "1.0.0",
     "dependencies": {
         "framework7": "^1",
-	"jquery": "^2"
+        "jquery": "^2",
+        "store-js": "^1",
+        "pym.js": "^1"
     }
 }
